@@ -1,0 +1,19 @@
+# Backend
+target/
+*.class
+
+# Local configuration / secrets
+src/main/resources/application-local.properties
+
+# Frontend
+expense-tracker-frontend/node_modules/
+expense-tracker-frontend/dist/
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
