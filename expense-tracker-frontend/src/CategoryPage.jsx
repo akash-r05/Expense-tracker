@@ -12,6 +12,7 @@ function CategoryPage({ userEmail }) {
   });
 
   const [editingId, setEditingId] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
 
   // ===============================
@@ -45,7 +46,7 @@ function CategoryPage({ userEmail }) {
 
   useEffect(() => {
     loadCategories();
-  }, []);
+  }, [userEmail]);
 
 
   // ===============================
@@ -75,6 +76,13 @@ function CategoryPage({ userEmail }) {
       return;
     }
 
+    // Prevent multiple submissions
+    if (submitting) {
+      return;
+    }
+
+    setSubmitting(true);
+
     try {
 
       const url = editingId
@@ -90,8 +98,8 @@ function CategoryPage({ userEmail }) {
         },
 
         body: JSON.stringify({
-          name: form.name,
-          description: form.description
+          name: form.name.trim(),
+          description: form.description.trim()
         })
 
       });
@@ -122,12 +130,16 @@ function CategoryPage({ userEmail }) {
 
       setEditingId(null);
 
-      loadCategories();
+      await loadCategories();
 
     } catch (error) {
 
       console.error(error);
       alert(error.message);
+
+    } finally {
+
+      setSubmitting(false);
 
     }
 
@@ -188,7 +200,7 @@ function CategoryPage({ userEmail }) {
 
       alert("Category deleted successfully");
 
-      loadCategories();
+      await loadCategories();
 
     } catch (error) {
 
@@ -248,6 +260,7 @@ function CategoryPage({ userEmail }) {
             value={form.name}
             onChange={handleChange}
             placeholder="Example: Travel"
+            disabled={submitting}
           />
 
         </div>
@@ -265,16 +278,22 @@ function CategoryPage({ userEmail }) {
             value={form.description}
             onChange={handleChange}
             placeholder="Example: Travel expenses"
+            disabled={submitting}
           />
 
         </div>
 
 
-        <button type="submit">
+        <button
+          type="submit"
+          disabled={submitting}
+        >
 
-          {editingId
-            ? "Update Category"
-            : "Add Category"}
+          {submitting
+            ? "Saving..."
+            : editingId
+              ? "Update Category"
+              : "Add Category"}
 
         </button>
 
@@ -284,6 +303,7 @@ function CategoryPage({ userEmail }) {
           <button
             type="button"
             onClick={handleCancel}
+            disabled={submitting}
           >
             Cancel
           </button>
@@ -362,6 +382,7 @@ function CategoryPage({ userEmail }) {
                   onClick={() =>
                     handleEdit(category)
                   }
+                  disabled={submitting}
                 >
                   Edit
                 </button>
@@ -371,6 +392,7 @@ function CategoryPage({ userEmail }) {
                   onClick={() =>
                     handleDelete(category.id)
                   }
+                  disabled={submitting}
                 >
                   Delete
                 </button>
