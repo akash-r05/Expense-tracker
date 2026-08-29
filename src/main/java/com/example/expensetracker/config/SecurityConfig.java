@@ -47,10 +47,11 @@ public class SecurityConfig {
                 new CorsConfiguration();
 
         configuration.setAllowedOrigins(
-                Arrays.asList(
-                    "http://localhost:5173"
-                )
-        );
+        Arrays.asList(
+            "http://localhost:5173",
+            "https://expense-tracker-frontend-m4dd.onrender.com"
+        )
+);
 
         configuration.setAllowedMethods(
                 Arrays.asList(
