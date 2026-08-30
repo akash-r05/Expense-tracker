@@ -475,7 +475,11 @@ function AuthPage({ onLogin }) {
           >
 
             {loading
-              ? "Please wait..."
+              ? mode === "login"
+                ? "Connecting to server..."
+                : mode === "register"
+                  ? "Creating account..."
+                  : "Resetting password..."
               : mode === "login"
                 ? "Login"
                 : mode === "register"
