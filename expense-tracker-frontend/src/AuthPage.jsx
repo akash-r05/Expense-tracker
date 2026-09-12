@@ -61,7 +61,7 @@ function AuthPage({ onLogin }) {
         );
 
         setMessage(
-          "Registration successful. Please login."
+          "Your account has been created successfully. Please login to continue."
         );
 
         setMode("login");
@@ -104,13 +104,13 @@ function AuthPage({ onLogin }) {
 
         if (newPassword !== confirmPassword) {
           throw new Error(
-            "Passwords do not match"
+            "Passwords do not match. Please enter the same password in both fields."
           );
         }
 
         if (newPassword.length < 6) {
           throw new Error(
-            "Password must contain at least 6 characters"
+            "Your password must be at least 6 characters long."
           );
         }
 
@@ -120,7 +120,7 @@ function AuthPage({ onLogin }) {
         );
 
         setMessage(
-          "Password reset successfully. Please login."
+          "Your password has been reset successfully. Please login with your new password."
         );
 
         setMode("login");
@@ -134,7 +134,8 @@ function AuthPage({ onLogin }) {
     } catch (err) {
 
       setError(
-        err.message || "Something went wrong"
+        err.message ||
+        "Something went wrong. Please try again."
       );
 
     } finally {
@@ -331,6 +332,7 @@ function AuthPage({ onLogin }) {
               />
 
               <label className="show-password">
+
                 <input
                   type="checkbox"
                   checked={showPassword}
@@ -342,6 +344,7 @@ function AuthPage({ onLogin }) {
                 <span>
                   Show password
                 </span>
+
               </label>
 
             </div>
@@ -476,10 +479,10 @@ function AuthPage({ onLogin }) {
 
             {loading
               ? mode === "login"
-                ? "Connecting to server..."
+                ? "Signing you in..."
                 : mode === "register"
-                  ? "Creating account..."
-                  : "Resetting password..."
+                  ? "Creating your account..."
+                  : "Resetting your password..."
               : mode === "login"
                 ? "Login"
                 : mode === "register"

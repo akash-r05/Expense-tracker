@@ -20,29 +20,40 @@ public class CategoryController {
     // CREATE CATEGORY
     @PostMapping
     public ResponseEntity<Category> createCategory(
-            @RequestBody Category category) {
+            @RequestBody Category category,
+            @RequestParam String userEmail) {
 
         return ResponseEntity.ok(
-                categoryService.createCategory(category)
+                categoryService.createCategory(
+                        category,
+                        userEmail
+                )
         );
     }
 
-    // GET ALL CATEGORIES
+    // GET ALL CATEGORIES FOR USER
     @GetMapping
-    public ResponseEntity<List<Category>> getAllCategories() {
+    public ResponseEntity<List<Category>> getUserCategories(
+            @RequestParam String userEmail) {
 
         return ResponseEntity.ok(
-                categoryService.getAllCategories()
+                categoryService.getUserCategories(
+                        userEmail
+                )
         );
     }
 
     // GET CATEGORY BY ID
     @GetMapping("/{id}")
     public ResponseEntity<Category> getCategoryById(
-            @PathVariable Long id) {
+            @PathVariable Long id,
+            @RequestParam String userEmail) {
 
         return ResponseEntity.ok(
-                categoryService.getCategoryById(id)
+                categoryService.getCategoryById(
+                        id,
+                        userEmail
+                )
         );
     }
 
@@ -50,19 +61,28 @@ public class CategoryController {
     @PutMapping("/{id}")
     public ResponseEntity<Category> updateCategory(
             @PathVariable Long id,
-            @RequestBody Category category) {
+            @RequestBody Category category,
+            @RequestParam String userEmail) {
 
         return ResponseEntity.ok(
-                categoryService.updateCategory(id, category)
+                categoryService.updateCategory(
+                        id,
+                        category,
+                        userEmail
+                )
         );
     }
 
     // DELETE CATEGORY
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteCategory(
-            @PathVariable Long id) {
+            @PathVariable Long id,
+            @RequestParam String userEmail) {
 
-        categoryService.deleteCategory(id);
+        categoryService.deleteCategory(
+                id,
+                userEmail
+        );
 
         return ResponseEntity.ok(
                 "Category deleted successfully"

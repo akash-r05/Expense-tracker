@@ -45,7 +45,9 @@ function CategoryPage({ userEmail }) {
 
 
   useEffect(() => {
-    loadCategories();
+    if (userEmail) {
+      loadCategories();
+    }
   }, [userEmail]);
 
 
@@ -76,8 +78,12 @@ function CategoryPage({ userEmail }) {
       return;
     }
 
-    // Prevent multiple submissions
     if (submitting) {
+      return;
+    }
+
+    if (!userEmail) {
+      alert("User information is missing. Please log in again.");
       return;
     }
 
@@ -86,8 +92,8 @@ function CategoryPage({ userEmail }) {
     try {
 
       const url = editingId
-        ? `${API_BASE_URL}/categories/${editingId}`
-        : `${API_BASE_URL}/categories`;
+        ? `${API_BASE_URL}/categories/${editingId}?userEmail=${encodeURIComponent(userEmail)}`
+        : `${API_BASE_URL}/categories?userEmail=${encodeURIComponent(userEmail)}`;
 
       const response = await fetch(url, {
 
@@ -176,11 +182,15 @@ function CategoryPage({ userEmail }) {
       return;
     }
 
+    if (!userEmail) {
+      alert("User information is missing. Please log in again.");
+      return;
+    }
 
     try {
 
       const response = await fetch(
-        `${API_BASE_URL}/categories/${id}`,
+        `${API_BASE_URL}/categories/${id}?userEmail=${encodeURIComponent(userEmail)}`,
         {
           method: "DELETE"
         }
