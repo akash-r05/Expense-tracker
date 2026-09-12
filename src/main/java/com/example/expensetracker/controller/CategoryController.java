@@ -4,10 +4,12 @@ import com.example.expensetracker.entity.Category;
 import com.example.expensetracker.service.CategoryService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -87,5 +89,18 @@ public class CategoryController {
         return ResponseEntity.ok(
                 "Category deleted successfully"
         );
+    }
+
+    // HANDLE DUPLICATE CATEGORY
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgumentException(
+            IllegalArgumentException ex) {
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(Map.of(
+                        "message",
+                        ex.getMessage()
+                ));
     }
 }
