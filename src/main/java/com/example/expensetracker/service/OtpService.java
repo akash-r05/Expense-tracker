@@ -3,13 +3,16 @@ package com.example.expensetracker.service;
 import com.example.expensetracker.entity.OtpVerification;
 import com.example.expensetracker.repository.OtpVerificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClient;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional
@@ -18,12 +21,16 @@ public class OtpService {
     @Autowired
     private OtpVerificationRepository otpRepository;
 
-    @Autowired
-    private JavaMailSender mailSender;
+    @Value("${BREVO_API_KEY:}")
+    private String brevoApiKey;
 
     private final SecureRandom random = new SecureRandom();
 
     private static final int OTP_EXPIRY_MINUTES = 5;
+
+    private final RestClient brevoClient = RestClient.builder()
+            .baseUrl("https://api.brevo.com")
+            .build();
 
     public void sendOtp(String email, String purpose) {
 
@@ -91,20 +98,18 @@ public class OtpService {
             String otp,
             String purpose) {
 
-        SimpleMailMessage message =
-                new SimpleMailMessage();
-
-        message.setTo(email);
-        message.setSubject(
-                "Expense Tracker - Email Verification OTP"
-        );
+        if (brevoApiKey == null || brevoApiKey.isBlank()) {
+            throw new IllegalStateException(
+                    "BREVO_API_KEY is not configured"
+            );
+        }
 
         String purposeText =
                 "REGISTER".equals(purpose)
                         ? "verify your email and complete registration"
                         : "reset your Expense Tracker password";
 
-        message.setText(
+        String emailText =
                 "Hello,\n\n"
                 + "Your OTP to "
                 + purposeText
@@ -114,9 +119,30 @@ public class OtpService {
                 + "This OTP is valid for 5 minutes.\n"
                 + "Please do not share this OTP with anyone.\n\n"
                 + "Regards,\n"
-                + "Expense Tracker Team"
+                + "Expense Tracker Team";
+
+        Map<String, Object> requestBody = Map.of(
+                "sender", Map.of(
+                        "name", "Expense Tracker",
+                        "email", "ragiakash6@gmail.com"
+                ),
+                "to", List.of(
+                        Map.of(
+                                "email", email
+                        )
+                ),
+                "subject",
+                "Expense Tracker - Email Verification OTP",
+                "textContent",
+                emailText
         );
 
-        mailSender.send(message);
+        brevoClient.post()
+                .uri("/v3/smtp/email")
+                .header("api-key", brevoApiKey)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .retrieve()
+                .toBodilessEntity();
     }
 }
