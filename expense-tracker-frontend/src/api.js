@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://expense-tracker-b45q.onrender.com/api";
+const API_BASE_URL = "http://localhost:8080/api";
 
 // ===============================
 // USER-FRIENDLY ERROR HANDLER
@@ -532,10 +532,8 @@ export const getYearlyReport = async (year, userEmail) => {
     );
   }
 };
-
-
 // ===============================
-// REGISTER
+// REGISTER - SEND OTP
 // ===============================
 export const registerUser = async (
   email,
@@ -564,7 +562,7 @@ export const registerUser = async (
       throw new Error(
         getFriendlyError(
           data.error || data.message,
-          "Unable to create your account. Please try again."
+          "Unable to start registration. Please try again."
         )
       );
     }
@@ -575,11 +573,62 @@ export const registerUser = async (
     throw new Error(
       getFriendlyError(
         error.message,
-        "Unable to create your account. Please try again."
+        "Unable to send verification OTP. Please try again."
       )
     );
   }
 };
+
+
+// ===============================
+// VERIFY REGISTRATION OTP
+// ===============================
+export const verifyRegistration = async (
+  email,
+  otp,
+  password,
+  firstName,
+  lastName
+) => {
+  try {
+    const params = new URLSearchParams({
+      email,
+      otp,
+      password,
+      firstName,
+      lastName
+    });
+
+    const response = await fetch(
+      `${API_BASE_URL}/auth/verify-registration?${params.toString()}`,
+      {
+        method: "POST"
+      }
+    );
+
+    const data = await readResponse(response);
+
+    if (!response.ok) {
+      throw new Error(
+        getFriendlyError(
+          data.error || data.message,
+          "Invalid or expired OTP. Please try again."
+        )
+      );
+    }
+
+    return data;
+
+  } catch (error) {
+    throw new Error(
+      getFriendlyError(
+        error.message,
+        "Unable to verify OTP. Please try again."
+      )
+    );
+  }
+};
+
 
 // ===============================
 // LOGIN
@@ -616,7 +665,6 @@ export const loginUser = async (
 
   } catch (error) {
 
-    // Preserve an already user-friendly message
     if (
       error.message ===
       "No account found with this email. Please register first."
@@ -647,16 +695,59 @@ export const loginUser = async (
   }
 };
 
+
 // ===============================
-// RESET PASSWORD
+// FORGOT PASSWORD - SEND OTP
+// ===============================
+export const forgotPassword = async (email) => {
+  try {
+    const params = new URLSearchParams({
+      email
+    });
+
+    const response = await fetch(
+      `${API_BASE_URL}/auth/forgot-password?${params.toString()}`,
+      {
+        method: "POST"
+      }
+    );
+
+    const data = await readResponse(response);
+
+    if (!response.ok) {
+      throw new Error(
+        getFriendlyError(
+          data.error || data.message,
+          "Unable to send password reset OTP. Please try again."
+        )
+      );
+    }
+
+    return data;
+
+  } catch (error) {
+    throw new Error(
+      getFriendlyError(
+        error.message,
+        "Unable to send password reset OTP. Please try again."
+      )
+    );
+  }
+};
+
+
+// ===============================
+// RESET PASSWORD WITH OTP
 // ===============================
 export const resetPassword = async (
   email,
+  otp,
   newPassword
 ) => {
   try {
     const params = new URLSearchParams({
       email,
+      otp,
       newPassword
     });
 

@@ -21,22 +21,80 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public User registerUser(
+    @Autowired
+    private OtpService otpService;
+
+    // START REGISTRATION
+    public void startRegistration(
             String email,
             String password,
             String firstName,
             String lastName) {
 
-        log.info("Registering new user: {}", email);
+        log.info("Starting registration for: {}", email);
 
         if (userRepository.findByEmail(email) != null) {
-            throw new BadRequestException("Email already registered");
+            throw new BadRequestException(
+                    "Email already registered"
+            );
+        }
+
+        if (email == null || email.isBlank()
+                || password == null || password.isBlank()
+                || firstName == null || firstName.isBlank()
+                || lastName == null || lastName.isBlank()) {
+
+            throw new BadRequestException(
+                    "All fields are required"
+            );
+        }
+
+        otpService.sendOtp(
+                email,
+                "REGISTER"
+        );
+
+        log.info(
+                "Registration OTP sent to: {}",
+                email
+        );
+    }
+
+    // COMPLETE REGISTRATION AFTER OTP
+    public User verifyRegistration(
+            String email,
+            String otp,
+            String password,
+            String firstName,
+            String lastName) {
+
+        log.info(
+                "Verifying registration OTP for: {}",
+                email
+        );
+
+        if (!otpService.verifyOtp(
+                email,
+                otp,
+                "REGISTER")) {
+
+            throw new BadRequestException(
+                    "Invalid or expired OTP"
+            );
+        }
+
+        if (userRepository.findByEmail(email) != null) {
+            throw new BadRequestException(
+                    "Email already registered"
+            );
         }
 
         User user = new User();
 
         user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(password));
+        user.setPassword(
+                passwordEncoder.encode(password)
+        );
         user.setFirstName(firstName);
         user.setLastName(lastName);
         user.setRole(User.Role.USER);
@@ -45,17 +103,22 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    // LOGIN
     public User authenticateUser(
             String email,
             String password) {
 
-        log.info("Authenticating user: {}", email);
+        log.info(
+                "Authenticating user: {}",
+                email
+        );
 
-        User user = userRepository.findByEmail(email);
+        User user =
+                userRepository.findByEmail(email);
 
         if (user == null || !user.getActive()) {
             throw new ResourceNotFoundException(
-                "User not found or inactive"
+                    "User not found or inactive"
             );
         }
 
@@ -63,7 +126,9 @@ public class UserService {
                 password,
                 user.getPassword())) {
 
-            throw new BadRequestException("Invalid password");
+            throw new BadRequestException(
+                    "Invalid password"
+            );
         }
 
         return user;
@@ -73,20 +138,68 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
-    public void resetPassword(String email, String newPassword) {
+    // START FORGOT PASSWORD
+    public void startPasswordReset(String email) {
 
-        log.info("Resetting password for user: {}", email);
+        log.info(
+                "Starting password reset for: {}",
+                email
+        );
 
-        User user = userRepository.findByEmail(email);
+        User user =
+                userRepository.findByEmail(email);
 
         if (user == null) {
-            throw new ResourceNotFoundException("User not found");
+            throw new ResourceNotFoundException(
+                    "User not found"
+            );
         }
 
-        user.setPassword(passwordEncoder.encode(newPassword));
+        otpService.sendOtp(
+                email,
+                "RESET_PASSWORD"
+        );
+    }
+
+    // RESET PASSWORD AFTER OTP
+    public void resetPassword(
+            String email,
+            String otp,
+            String newPassword) {
+
+        log.info(
+                "Resetting password for: {}",
+                email
+        );
+
+        User user =
+                userRepository.findByEmail(email);
+
+        if (user == null) {
+            throw new ResourceNotFoundException(
+                    "User not found"
+            );
+        }
+
+        if (!otpService.verifyOtp(
+                email,
+                otp,
+                "RESET_PASSWORD")) {
+
+            throw new BadRequestException(
+                    "Invalid or expired OTP"
+            );
+        }
+
+        user.setPassword(
+                passwordEncoder.encode(newPassword)
+        );
 
         userRepository.save(user);
 
-        log.info("Password reset successful for: {}", email);
+        log.info(
+                "Password reset successful for: {}",
+                email
+        );
     }
 }

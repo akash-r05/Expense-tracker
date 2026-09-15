@@ -43,8 +43,7 @@ public class CategoryService {
 
         if (existingCategory != null) {
             throw new IllegalArgumentException(
-                    "Category already exists for this user"
-            );
+        "Category already exists. Please try another name.");
         }
 
         // Always assign the category to the logged-in user
